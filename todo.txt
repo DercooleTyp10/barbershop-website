@@ -1,6 +1,5 @@
-mir ist aufgefallen dass beim termin erstellen noch immer der monat vor dem tag zum wählen ist und das jahr muss man auch wählen. Es wäre schöner wenn man nur tag und monat wählen muss und es immer nur einen monat in die zukunft da es wenig sinn macht mehr als einen monat einen termin auszumachen
 - fixing bugs with sorting Fixed ✓
-- termin erstellen date fixing (day/month/year) as well as adding a limit to when a date can be selected (eg. 1 month)
+- termin erstellen date fixing (day/month/year) as well as adding a limit to when a date can be selected (eg. 1 month) Done ✓
 - Tel field should only accept numbers Fixed ✓
 - Maybe add email field for later sending confirmations
 - Checking if timeframe is still avalible
