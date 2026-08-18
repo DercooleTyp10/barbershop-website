@@ -6,6 +6,13 @@ WORK_START = time(8, 0)
 WORK_END = time(19, 0)
 SLOT_MINUTES = 15
 
+SERVICES = {
+    "haircut": "Haarschnitt",
+    "beard": "Bart trimmen",
+    "both": "Haarschnitt + Bart",
+    "kids": "Kinderhaarschnitt",
+}
+
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///barbershop.db"
 db = SQLAlchemy(app)
@@ -36,7 +43,7 @@ def generate_time_slots(start, end, step_minutes):
 @app.route("/")
 def index():
     time_slots = generate_time_slots(WORK_START, WORK_END, SLOT_MINUTES)
-    return render_template("index.html", today=date.today().isoformat(), time_slots=time_slots)
+    return render_template("index.html", today=date.today().isoformat(), time_slots=time_slots, services=SERVICES)
 
 
 @app.route("/order", methods=["POST"])
@@ -69,6 +76,11 @@ def order():
 def order_success():
     return render_template("order_success.html")
 
+
+@app.route("/admin/orders")
+def admin_orders():
+    orders = Order.query.order_by(Order.appointment_time).all()
+    return render_template("admin_orders.html", orders=orders, services=SERVICES)
 
 if __name__ == "__main__":
     with app.app_context():

@@ -39,10 +39,9 @@
         <div>
             <label for="service">Service</label>
             <select id="service" name="service" required>
-                <option value="haircut">Haarschnitt</option>
-                <option value="beard">Bart trimmen</option>
-                <option value="both">Haarschnitt + Bart</option>
-                <option value="kids">Kinderhaarschnitt</option>
+                {% for code, label in services.items() %}
+                <option value="{{ code }}">{{ label }}</option>
+                {% endfor %}
             </select>
         </div>
         <div>

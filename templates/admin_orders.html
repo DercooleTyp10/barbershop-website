@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}Terminübersicht{% endblock %}
+
+{% block content %}
+<section>
+  <h2>Terminanfragen</h2>
+  <table style="width:100%; border-collapse: collapse;">
+    <thead>
+      <tr style="text-align:left; border-bottom: 1px solid var(--border);">
+        <th style="padding: 0.5rem;">Datum/Zeit</th>
+        <th style="padding: 0.5rem;">Name</th>
+        <th style="padding: 0.5rem;">Telefon</th>
+        <th style="padding: 0.5rem;">Service</th>
+        <th style="padding: 0.5rem;">Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for o in orders %}
+      <tr style="border-bottom: 1px dashed var(--border);">
+        <td style="padding: 0.5rem;">{{ o.appointment_time.strftime("%d.%m.%Y %H:%M") }}</td>
+        <td style="padding: 0.5rem;">{{ o.name }}</td>
+        <td style="padding: 0.5rem;">{{ o.phone }}</td>
+        <td style="padding: 0.5rem;">{{ services.get(o.service, o.service) }}</td>
+        <td style="padding: 0.5rem;">{{ o.status }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}
