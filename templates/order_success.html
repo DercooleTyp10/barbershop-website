@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block title %}Anfrage gesendet{% endblock %}
+
+{% block content %}
+<section>
+  <h2>Danke!</h2>
+  <p>Deine Terminanfrage wurde erfolgreich übermittelt. Wir melden uns telefonisch zur Bestätigung.</p>
+  <p style="margin-top: 1.5rem;"><a href="{{ url_for('index') }}" style="color: var(--accent);">Zurück zur Startseite</a></p>
+</section>
+{% endblock %}
