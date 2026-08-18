@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "_macros.html" import sort_link %}
+{% from "_macros.html" import sort_link, orders_table %}
 
 {% block title %}Terminübersicht{% endblock %}
 
@@ -20,51 +20,17 @@
     <button type="submit">Suchen</button>
   </form>
 
-  <table style="width:100%; border-collapse: collapse;">
-    <thead>
-      <tr style="text-align:left; border-bottom: 1px solid var(--border);">
-        <th style="padding: 0.5rem;">{{ sort_link("Datum/Zeit", "date", sort, direction, search) }}</th>
-        <th style="padding: 0.5rem;">{{ sort_link("Name", "name", sort, direction, search) }}</th>
-        <th style="padding: 0.5rem;">{{ sort_link("Telefon", "phone", sort, direction, search) }}</th>
-        <th style="padding: 0.5rem;">{{ sort_link("Service", "service", sort, direction, search) }}</th>
-        <th style="padding: 0.5rem;">{{ sort_link("Status", "status", sort, direction, search) }}</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for o in orders %}
-      {% set is_overdue = o.appointment_time < now and o.status == "angefragt" %}
-      <tr class="{% if is_overdue %}overdue{% endif %}" style="border-bottom: 1px dashed var(--border);">
-        <td style="padding: 0.5rem;">
-          {{ o.appointment_time.strftime("%d.%m.%Y %H:%M") }}
-          {% if is_overdue %}
-            <br><span style="color: #e05555; font-size: 0.75rem;">⚠ überfällig</span>
-          {% endif %}
-        </td>
-        <td style="padding: 0.5rem;">{{ o.name }}</td>
-        <td style="padding: 0.5rem;">{{ o.phone }}</td>
-        <td style="padding: 0.5rem;">{{ services.get(o.service, o.service) }}</td>
-        <td style="padding: 0.5rem;">
-          <form method="POST" action="{{ url_for('update_status', order_id=o.id) }}" class="status-form">
-            <select name="status">
-              {% for s in statuses %}
-              <option value="{{ s }}" {% if s == o.status %}selected{% endif %}>{{ s }}</option>
-              {% endfor %}
-            </select>
-            <button type="submit" class="save-btn" disabled>Speichern</button>
-          </form>
-        </td>
-      </tr>
-      {% endfor %}
-      {% if not orders %}
-      <tr><td colspan="5" style="padding: 1rem; color: var(--muted); text-align:center;">Keine Termine gefunden.</td></tr>
-      {% endif %}
-    </tbody>
-  </table>
+  <h3 style="color: var(--accent); margin-bottom: 0.75rem;">Heute</h3>
+  {{ orders_table(today_orders, services, statuses, sort, direction, search, now) }}
+
+  <h3 style="color: var(--accent); margin: 2rem 0 0.75rem;">Kommende Termine</h3>
+  {{ orders_table(upcoming_orders, services, statuses, sort, direction, search, now) }}
 </section>
 {% endblock %}
 
 {% block scripts %}
 <script>
+  // Bestehende Save-Button-Logik
   document.querySelectorAll('.status-form').forEach(form => {
     const select = form.querySelector('select');
     const button = form.querySelector('.save-btn');
@@ -73,6 +39,20 @@
     select.addEventListener('change', () => {
       button.disabled = (select.value === initialValue);
     });
+  });
+
+  // Scroll-Position merken, bevor die Seite neu lädt
+  window.addEventListener('beforeunload', () => {
+    sessionStorage.setItem('adminScrollPos', window.scrollY);
+  });
+
+  // Scroll-Position nach dem Laden wiederherstellen
+  window.addEventListener('DOMContentLoaded', () => {
+    const savedPos = sessionStorage.getItem('adminScrollPos');
+    if (savedPos !== null) {
+      window.scrollTo(0, parseInt(savedPos, 10));
+      sessionStorage.removeItem('adminScrollPos');
+    }
   });
 </script>
 {% endblock %}

@@ -144,17 +144,14 @@ def admin_orders():
 
     orders = query.all()
 
-    # "heute zuerst" nur anwenden, wenn nach Datum sortiert wird
-    if sort == "date":
-        today = date_cls.today()
-        reverse = (direction == "desc")
-        orders.sort(key=lambda o: (o.appointment_time.date() != today,), reverse=False)
-        # Innerhalb der zwei Gruppen (heute / nicht heute) bleibt die DB-Sortierung erhalten,
-        # da Python sort stabil ist
+    today = date_cls.today()
+    today_orders = [o for o in orders if o.appointment_time.date() == today]
+    upcoming_orders = [o for o in orders if o.appointment_time.date() != today]
 
     return render_template(
         "admin_orders.html",
-        orders=orders,
+        today_orders=today_orders,
+        upcoming_orders=upcoming_orders,
         services=SERVICES,
         statuses=ORDER_STATUSES,
         now=datetime.now(),

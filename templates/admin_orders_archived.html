@@ -48,6 +48,7 @@
 
 {% block scripts %}
 <script>
+  // Bestehende Save-Button-Logik
   document.querySelectorAll('.status-form').forEach(form => {
     const select = form.querySelector('select');
     const button = form.querySelector('.save-btn');
@@ -56,6 +57,20 @@
     select.addEventListener('change', () => {
       button.disabled = (select.value === initialValue);
     });
+  });
+
+  // Scroll-Position merken, bevor die Seite neu lädt
+  window.addEventListener('beforeunload', () => {
+    sessionStorage.setItem('adminScrollPos', window.scrollY);
+  });
+
+  // Scroll-Position nach dem Laden wiederherstellen
+  window.addEventListener('DOMContentLoaded', () => {
+    const savedPos = sessionStorage.getItem('adminScrollPos');
+    if (savedPos !== null) {
+      window.scrollTo(0, parseInt(savedPos, 10));
+      sessionStorage.removeItem('adminScrollPos');
+    }
   });
 </script>
 {% endblock %}
