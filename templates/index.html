@@ -56,29 +56,167 @@
         <div>
             <span
                 style="display:block; margin-bottom: 0.5rem; color: var(--muted); font-size: 0.85rem;">Wunschtermin</span>
-            <div>
-                <label for="date">Datum</label>
-                <input type="date" id="date" name="date" required min="{{ today }}">
+
+            <div class="calendar" id="calendar">
+                <div class="calendar-header">
+                    <button type="button" id="prevMonth">&lt;</button>
+                    <span id="calendarMonthLabel"></span>
+                    <button type="button" id="nextMonth">&gt;</button>
+                </div>
+                <div class="calendar-weekdays">
+                    <span>Mo</span><span>Di</span><span>Mi</span><span>Do</span><span>Fr</span><span>Sa</span><span>So</span>
+                </div>
+                <div class="calendar-days" id="calendarDays"></div>
             </div>
-            <div>
+
+            <input type="hidden" id="date" name="date" required>
+            <p id="selectedDateLabel" style="margin-top:0.5rem; color: var(--muted); font-size:0.9rem;"></p>
+
+            <div style="margin-top:1rem;">
                 <label for="time">Uhrzeit (Öffnungszeiten: 08:00–19:00)</label>
                 <select id="time" name="time" required>
-                    <option value="" disabled selected>Bitte wählen</option>
-                    {% for slot in time_slots %}
-                    <option value="{{ slot }}">{{ slot }}</option>
-                    {% endfor %}
+                    <option value="" disabled selected>Bitte zuerst Datum wählen</option>
                 </select>
             </div>
-            <button type="submit">Termin anfragen</button>
+        </div>
+        <button type="submit">Termin anfragen</button>
     </form>
 </section>
 {% endblock %}
 
 {% block scripts %}
 <script>
-    const phoneInput = document.getElementById('phone_number');
-    phoneInput.addEventListener('input', () => {
-        phoneInput.value = phoneInput.value.replace(/[^0-9]/g, '');
+  const phoneInput = document.getElementById('phone_number');
+  phoneInput.addEventListener('input', () => {
+    phoneInput.value = phoneInput.value.replace(/[^0-9]/g, '');
+  });
+
+  (function() {
+    const minDate = new Date("{{ today }}T00:00:00");
+    const maxDate = new Date("{{ max_date }}T00:00:00");
+    const timeSlots = {{ time_slots | tojson }};
+    const now = new Date("{{ now_iso }}");
+
+    const dateInput = document.getElementById('date');
+    const timeSelect = document.getElementById('time');
+    const selectedLabel = document.getElementById('selectedDateLabel');
+    const monthLabel = document.getElementById('calendarMonthLabel');
+    const daysContainer = document.getElementById('calendarDays');
+    const prevBtn = document.getElementById('prevMonth');
+    const nextBtn = document.getElementById('nextMonth');
+
+    let viewYear = minDate.getFullYear();
+    let viewMonth = minDate.getMonth();
+    let selectedDate = null;
+
+    const monthNames = ["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
+
+    function stripTime(d) {
+      return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    }
+
+    function isoDate(d) {
+      return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+    }
+
+    function sameDay(a, b) {
+      return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate();
+    }
+
+    function renderCalendar() {
+      daysContainer.innerHTML = "";
+      monthLabel.textContent = monthNames[viewMonth] + " " + viewYear;
+
+      const firstOfMonth = new Date(viewYear, viewMonth, 1);
+      let startWeekday = (firstOfMonth.getDay() + 6) % 7; // Montag = 0
+      const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+
+      for (let i = 0; i < startWeekday; i++) {
+        daysContainer.appendChild(document.createElement('span'));
+      }
+
+      for (let day = 1; day <= daysInMonth; day++) {
+        const d = new Date(viewYear, viewMonth, day);
+        const btn = document.createElement('button');
+        btn.type = "button";
+        btn.textContent = day;
+
+        const disabled = d < stripTime(minDate) || d > stripTime(maxDate);
+        if (disabled) {
+          btn.disabled = true;
+          btn.classList.add('disabled');
+        } else {
+          btn.addEventListener('click', () => selectDate(d));
+        }
+
+        if (selectedDate && sameDay(d, selectedDate)) {
+          btn.classList.add('selected');
+        }
+
+        daysContainer.appendChild(btn);
+      }
+
+      prevBtn.disabled = (viewYear === minDate.getFullYear() && viewMonth === minDate.getMonth());
+      nextBtn.disabled = (viewYear === maxDate.getFullYear() && viewMonth === maxDate.getMonth());
+    }
+
+    function selectDate(d) {
+      selectedDate = d;
+      dateInput.value = isoDate(d);
+      selectedLabel.textContent = "Gewählt: " + d.toLocaleDateString('de-AT');
+      renderCalendar();
+      updateTimeOptions();
+    }
+
+    function updateTimeOptions() {
+      timeSelect.innerHTML = "";
+
+      const placeholder = document.createElement('option');
+      placeholder.value = "";
+      placeholder.textContent = "Bitte wählen";
+      placeholder.disabled = true;
+      placeholder.selected = true;
+      timeSelect.appendChild(placeholder);
+
+      const isToday = sameDay(selectedDate, now);
+
+      timeSlots.forEach(slot => {
+        const [h, m] = slot.split(":").map(Number);
+        const slotDateTime = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), h, m);
+
+        if (isToday && slotDateTime <= now) {
+          return; // liegt in der Vergangenheit, überspringen
+        }
+
+        const opt = document.createElement('option');
+        opt.value = slot;
+        opt.textContent = slot;
+        timeSelect.appendChild(opt);
+      });
+
+      if (timeSelect.options.length === 1) {
+        timeSelect.innerHTML = "";
+        const noneOpt = document.createElement('option');
+        noneOpt.textContent = "Keine Termine mehr an diesem Tag";
+        noneOpt.disabled = true;
+        noneOpt.selected = true;
+        timeSelect.appendChild(noneOpt);
+      }
+    }
+
+    prevBtn.addEventListener('click', () => {
+      viewMonth--;
+      if (viewMonth < 0) { viewMonth = 11; viewYear--; }
+      renderCalendar();
     });
+
+    nextBtn.addEventListener('click', () => {
+      viewMonth++;
+      if (viewMonth > 11) { viewMonth = 0; viewYear++; }
+      renderCalendar();
+    });
+
+    renderCalendar();
+  })();
 </script>
 {% endblock %}

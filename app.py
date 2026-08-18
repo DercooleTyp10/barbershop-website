@@ -5,7 +5,7 @@ from functools import wraps
 from flask import session
 from datetime import date as date_cls
 
-
+MAX_BOOKING_DAYS = 30  # wie weit im Voraus gebucht werden darf
 WORK_START = time(8, 0)
 WORK_END = time(19, 0)
 SLOT_MINUTES = 15
@@ -70,7 +70,16 @@ def login_required(f):
 @app.route("/")
 def index():
     time_slots = generate_time_slots(WORK_START, WORK_END, SLOT_MINUTES)
-    return render_template("index.html", today=date.today().isoformat(), time_slots=time_slots, services=SERVICES)
+    today = date.today()
+    max_date = today + timedelta(days=MAX_BOOKING_DAYS)
+    return render_template(
+        "index.html",
+        today=today.isoformat(),
+        max_date=max_date.isoformat(),
+        time_slots=time_slots,
+        services=SERVICES,
+        now_iso=datetime.now().isoformat()
+    )
 
 @app.route("/admin/login", methods=["GET", "POST"])
 def login():
@@ -91,21 +100,31 @@ def logout():
 @app.route("/order", methods=["POST"])
 def order():
     name = request.form["name"]
+
     phone_prefix = request.form["phone_prefix"]
     phone_number = request.form["phone_number"]
+    if not phone_number.isdigit():
+        return "Telefonnummer darf nur Ziffern enthalten", 400
+    phone = f"{phone_prefix} {phone_number}"
+
     service = request.form["service"]
 
     order_date = date.fromisoformat(request.form["date"])
     order_time = time.fromisoformat(request.form["time"])
 
-    if not phone_number.isdigit():
-        return "Telefonnummer darf nur Ziffern enthalten", 400
+    today = date.today()
+    max_date = today + timedelta(days=MAX_BOOKING_DAYS)
+
+    if not (today <= order_date <= max_date):
+        return f"Datum muss zwischen heute und {max_date.strftime('%d.%m.%Y')} liegen", 400
 
     if not (WORK_START <= order_time <= WORK_END):
         return "Uhrzeit liegt außerhalb der Öffnungszeiten (08:00–19:00)", 400
 
     appointment_time = datetime.combine(order_date, order_time)
-    phone = f"{phone_prefix} {phone_number}"
+
+    if appointment_time < datetime.now():
+        return "Der gewählte Termin liegt in der Vergangenheit", 400
 
     new_order = Order(
         name=name,
@@ -117,7 +136,6 @@ def order():
     db.session.commit()
 
     return redirect(url_for("order_success"))
-
 
 @app.route("/order/success")
 def order_success():
