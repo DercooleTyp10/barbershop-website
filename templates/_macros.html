@@ -1,0 +1,9 @@
+{% macro sort_link(label, column, current_sort, current_dir, search) %}
+  {% set next_dir = 'desc' if (current_sort == column and current_dir == 'asc') else 'asc' %}
+  <a href="?sort={{ column }}&dir={{ next_dir }}{% if search %}&q={{ search }}{% endif %}" style="color: inherit; text-decoration: none;">
+    {{ label }}
+    {% if current_sort == column %}
+      {{ '▲' if current_dir == 'asc' else '▼' }}
+    {% endif %}
+  </a>
+{% endmacro %}

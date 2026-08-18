@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}Archiv{% endblock %}
+
+{% block content %}
+<section>
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1.5rem;">
+    <h2 style="margin:0;">Archivierte Termine</h2>
+    <div style="display:flex; gap: 0.75rem;">
+      <a href="{{ url_for('admin_orders') }}" class="btn-link">Zurück zur Übersicht</a>
+      <a href="{{ url_for('logout') }}" class="btn-link">Logout</a>
+    </div>
+  </div>
+
+  <table style="width:100%; border-collapse: collapse;">
+    <thead>
+      <tr style="text-align:left; border-bottom: 1px solid var(--border);">
+        <th style="padding: 0.5rem;">Datum/Zeit</th>
+        <th style="padding: 0.5rem;">Name</th>
+        <th style="padding: 0.5rem;">Telefon</th>
+        <th style="padding: 0.5rem;">Service</th>
+        <th style="padding: 0.5rem;">Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for o in orders %}
+      <tr style="border-bottom: 1px dashed var(--border);">
+        <td style="padding: 0.5rem;">{{ o.appointment_time.strftime("%d.%m.%Y %H:%M") }}</td>
+        <td style="padding: 0.5rem;">{{ o.name }}</td>
+        <td style="padding: 0.5rem;">{{ o.phone }}</td>
+        <td style="padding: 0.5rem;">{{ services.get(o.service, o.service) }}</td>
+        <td style="padding: 0.5rem;">
+          <form method="POST" action="{{ url_for('update_status', order_id=o.id) }}" class="status-form">
+            <select name="status">
+              {% for s in statuses %}
+              <option value="{{ s }}" {% if s == o.status %}selected{% endif %}>{{ s }}</option>
+              {% endfor %}
+            </select>
+            <button type="submit" class="save-btn" disabled>Speichern</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.querySelectorAll('.status-form').forEach(form => {
+    const select = form.querySelector('select');
+    const button = form.querySelector('.save-btn');
+    const initialValue = select.value;
+
+    select.addEventListener('change', () => {
+      button.disabled = (select.value === initialValue);
+    });
+  });
+</script>
+{% endblock %}

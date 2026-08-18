@@ -1,0 +1,1 @@
+mir ist aufgefallen dass beim termin erstellen noch immer der monat vor dem tag zum wählen ist und das jahr muss man auch wählen. Es wäre schöner wenn man nur tag und monat wählen muss und es immer nur einen monat in die zukunft da es wenig sinn macht mehr als einen monat einen termin auszumachen

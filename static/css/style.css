@@ -80,6 +80,42 @@ section h2 {
   font-weight: 600;
 }
 
+.overdue {
+  background: rgba(224, 85, 85, 0.1);
+}
+
+.status-form {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.save-btn {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.8rem;
+  margin-top: 0;
+}
+
+.save-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.btn-link {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.85rem;
+  border: 1px solid var(--border);
+  padding: 0.4rem 0.9rem;
+  border-radius: 4px;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.btn-link:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
 form {
   background: var(--surface);
   padding: 1.5rem;
@@ -87,6 +123,11 @@ form {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+}
+
+form.inline input {
+  width: auto;
+  flex: 1;
 }
 
 label {

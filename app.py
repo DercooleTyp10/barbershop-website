@@ -3,6 +3,8 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime, date, time, timedelta
 from functools import wraps
 from flask import session
+from datetime import date as date_cls
+
 
 WORK_START = time(8, 0)
 WORK_END = time(19, 0)
@@ -14,6 +16,11 @@ SERVICES = {
     "both": "Haarschnitt + Bart",
     "kids": "Kinderhaarschnitt",
 }
+
+
+ORDER_STATUSES = ["angefragt", "bestätigt", "erledigt", "storniert", "nicht erschienen"]
+ACTIVE_STATUSES = ["angefragt", "bestätigt"]
+
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///barbershop.db"
@@ -34,6 +41,14 @@ class Order(db.Model):
 
     def __repr__(self):
         return f"<Order {self.id}: {self.name}, {self.service}, {self.appointment_time}>"
+
+SORT_COLUMNS = {
+    "date": Order.appointment_time,
+    "name": Order.name,
+    "phone": Order.phone,
+    "service": Order.service,
+    "status": Order.status,
+}
 
 def generate_time_slots(start, end, step_minutes):
     slots = []
@@ -107,8 +122,97 @@ def order_success():
 @app.route("/admin/orders")
 @login_required
 def admin_orders():
-    orders = Order.query.order_by(Order.appointment_time).all()
-    return render_template("admin_orders.html", orders=orders, services=SERVICES)
+    query = Order.query.filter(Order.status.in_(ACTIVE_STATUSES))
+
+    search = request.args.get("q", "").strip()
+    if search:
+        query = query.filter(
+            db.or_(
+                Order.name.ilike(f"%{search}%"),
+                Order.phone.ilike(f"%{search}%")
+            )
+        )
+
+    sort = request.args.get("sort", "date")
+    direction = request.args.get("dir", "asc")
+    sort_column = SORT_COLUMNS.get(sort, Order.appointment_time)
+
+    if direction == "desc":
+        query = query.order_by(sort_column.desc())
+    else:
+        query = query.order_by(sort_column.asc())
+
+    orders = query.all()
+
+    # "heute zuerst" nur anwenden, wenn nach Datum sortiert wird
+    if sort == "date":
+        today = date_cls.today()
+        reverse = (direction == "desc")
+        orders.sort(key=lambda o: (o.appointment_time.date() != today,), reverse=False)
+        # Innerhalb der zwei Gruppen (heute / nicht heute) bleibt die DB-Sortierung erhalten,
+        # da Python sort stabil ist
+
+    return render_template(
+        "admin_orders.html",
+        orders=orders,
+        services=SERVICES,
+        statuses=ORDER_STATUSES,
+        now=datetime.now(),
+        search=search,
+        sort=sort,
+        direction=direction
+    )
+
+
+
+@app.route("/admin/orders/archived")
+@login_required
+def admin_orders_archived():
+    query = Order.query.filter(~Order.status.in_(ACTIVE_STATUSES))
+
+    search = request.args.get("q", "").strip()
+    if search:
+        query = query.filter(
+            db.or_(
+                Order.name.ilike(f"%{search}%"),
+                Order.phone.ilike(f"%{search}%")
+            )
+        )
+
+    sort = request.args.get("sort", "date")
+    direction = request.args.get("dir", "desc")
+    sort_column = SORT_COLUMNS.get(sort, Order.appointment_time)
+
+    if direction == "desc":
+        query = query.order_by(sort_column.desc())
+    else:
+        query = query.order_by(sort_column.asc())
+
+    orders = query.all()
+
+    return render_template(
+        "admin_orders_archived.html",
+        orders=orders,
+        services=SERVICES,
+        statuses=ORDER_STATUSES,
+        search=search,
+        sort=sort,
+        direction=direction
+    )
+
+@app.route("/admin/orders/<int:order_id>/status", methods=["POST"])
+@login_required
+def update_status(order_id):
+    order = Order.query.get_or_404(order_id)
+    new_status = request.form["status"]
+
+    if new_status not in ORDER_STATUSES:
+        return "Ungültiger Status", 400
+
+    order.status = new_status
+    db.session.commit()
+
+    return redirect(url_for("admin_orders"))
 
 if __name__ == "__main__":
     with app.app_context():
