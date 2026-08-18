@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Login{% endblock %}
+
+{% block content %}
+<section>
+  <h2>Admin Login</h2>
+  {% if error %}
+    <p style="color: #e05555; margin-bottom: 1rem;">{{ error }}</p>
+  {% endif %}
+  <form method="POST" action="{{ url_for('login') }}">
+    <div>
+      <label for="password">Passwort</label>
+      <input type="password" id="password" name="password" required>
+    </div>
+    <button type="submit">Anmelden</button>
+  </form>
+</section>
+{% endblock %}

@@ -1,6 +1,8 @@
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime, date, time, timedelta
+from functools import wraps
+from flask import session
 
 WORK_START = time(8, 0)
 WORK_END = time(19, 0)
@@ -16,6 +18,9 @@ SERVICES = {
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///barbershop.db"
 db = SQLAlchemy(app)
+
+app.config["SECRET_KEY"] = "Asizsf9629oizsASIOZois08972oihS908iu98zs987"
+ADMIN_PASSWORD = "Vorzeigen"
 
 
 class Order(db.Model):
@@ -39,12 +44,34 @@ def generate_time_slots(start, end, step_minutes):
         current += timedelta(minutes=step_minutes)
     return slots
 
+def login_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if not session.get("logged_in"):
+            return redirect(url_for("login"))
+        return f(*args, **kwargs)
+    return decorated
 
 @app.route("/")
 def index():
     time_slots = generate_time_slots(WORK_START, WORK_END, SLOT_MINUTES)
     return render_template("index.html", today=date.today().isoformat(), time_slots=time_slots, services=SERVICES)
 
+@app.route("/admin/login", methods=["GET", "POST"])
+def login():
+    error = None
+    if request.method == "POST":
+        if request.form["password"] == ADMIN_PASSWORD:
+            session["logged_in"] = True
+            return redirect(url_for("admin_orders"))
+        else:
+            error = "Falsches Passwort"
+    return render_template("login.html", error=error)
+
+@app.route("/admin/logout")
+def logout():
+    session.pop("logged_in", None)
+    return redirect(url_for("login"))
 
 @app.route("/order", methods=["POST"])
 def order():
@@ -78,6 +105,7 @@ def order_success():
 
 
 @app.route("/admin/orders")
+@login_required
 def admin_orders():
     orders = Order.query.order_by(Order.appointment_time).all()
     return render_template("admin_orders.html", orders=orders, services=SERVICES)
