@@ -91,16 +91,21 @@ def logout():
 @app.route("/order", methods=["POST"])
 def order():
     name = request.form["name"]
-    phone = request.form["phone"]
+    phone_prefix = request.form["phone_prefix"]
+    phone_number = request.form["phone_number"]
     service = request.form["service"]
 
     order_date = date.fromisoformat(request.form["date"])
     order_time = time.fromisoformat(request.form["time"])
 
+    if not phone_number.isdigit():
+        return "Telefonnummer darf nur Ziffern enthalten", 400
+
     if not (WORK_START <= order_time <= WORK_END):
         return "Uhrzeit liegt außerhalb der Öffnungszeiten (08:00–19:00)", 400
 
     appointment_time = datetime.combine(order_date, order_time)
+    phone = f"{phone_prefix} {phone_number}"
 
     new_order = Order(
         name=name,

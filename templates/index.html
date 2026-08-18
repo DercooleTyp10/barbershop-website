@@ -34,7 +34,16 @@
         </div>
         <div>
             <label for="phone">Telefonnummer</label>
-            <input type="tel" id="phone" name="phone" required>
+            <div style="display:flex; gap:0.5rem;">
+                <select id="phone_prefix" name="phone_prefix" style="flex:0 0 110px;">
+                    <option value="+43" selected>🇦🇹 +43</option>
+                    <option value="+49">🇩🇪 +49</option>
+                    <option value="+41">🇨🇭 +41</option>
+                    <option value="+39">🇮🇹 +39</option>
+                </select>
+                <input type="text" id="phone_number" name="phone_number" inputmode="numeric" pattern="[0-9]*"
+                    placeholder="6641234567" required style="flex:1;">
+            </div>
         </div>
         <div>
             <label for="service">Service</label>
@@ -63,4 +72,13 @@
             <button type="submit">Termin anfragen</button>
     </form>
 </section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const phoneInput = document.getElementById('phone_number');
+    phoneInput.addEventListener('input', () => {
+        phoneInput.value = phoneInput.value.replace(/[^0-9]/g, '');
+    });
+</script>
 {% endblock %}
