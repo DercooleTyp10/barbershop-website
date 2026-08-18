@@ -1,0 +1,137 @@
+:root {
+  --bg: #0f0f0f;
+  --surface: #1a1a1a;
+  --text: #f5f5f0;
+  --muted: #a3a3a3;
+  --accent: #c9a15a;
+  --border: #2a2a2a;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+}
+
+header {
+  padding: 2rem 1.5rem;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+}
+
+header h1 {
+  font-size: 2rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+header p {
+  color: var(--muted);
+  margin-top: 0.5rem;
+}
+
+main {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+section {
+  margin-bottom: 3rem;
+}
+
+section h2 {
+  font-size: 1.3rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 1rem;
+  color: var(--accent);
+}
+
+.price-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.price-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 0.75rem 0;
+  border-bottom: 1px dashed var(--border);
+}
+
+.price-item .name {
+  font-weight: 600;
+}
+
+.price-item .duration {
+  color: var(--muted);
+  font-size: 0.85rem;
+  margin-left: 0.5rem;
+}
+
+.price-item .price {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+form {
+  background: var(--surface);
+  padding: 1.5rem;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+label {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-bottom: 0.25rem;
+  display: block;
+}
+
+input, select {
+  width: 100%;
+  padding: 0.65rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text);
+  font-size: 1rem;
+}
+
+input:focus, select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+button {
+  background: var(--accent);
+  color: var(--bg);
+  border: none;
+  padding: 0.8rem;
+  border-radius: 4px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  margin-top: 0.5rem;
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+footer {
+  text-align: center;
+  padding: 2rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+  border-top: 1px solid var(--border);
+}

@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}The Fade Room &mdash; Startseite{% endblock %}
+
+{% block content %}
+<section>
+  <h2>Preisliste</h2>
+  <div class="price-list">
+    <div class="price-item">
+      <span><span class="name">Haarschnitt</span><span class="duration">30 min</span></span>
+      <span class="price">25 €</span>
+    </div>
+    <div class="price-item">
+      <span><span class="name">Bart trimmen</span><span class="duration">15 min</span></span>
+      <span class="price">12 €</span>
+    </div>
+    <div class="price-item">
+      <span><span class="name">Haarschnitt + Bart</span><span class="duration">45 min</span></span>
+      <span class="price">33 €</span>
+    </div>
+    <div class="price-item">
+      <span><span class="name">Kinderhaarschnitt</span><span class="duration">20 min</span></span>
+      <span class="price">18 €</span>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>Termin anfragen</h2>
+  <form method="POST" action="/order">
+    <div>
+      <label for="name">Name</label>
+      <input type="text" id="name" name="name" required>
+    </div>
+    <div>
+      <label for="phone">Telefonnummer</label>
+      <input type="tel" id="phone" name="phone" required>
+    </div>
+    <div>
+      <label for="service">Service</label>
+      <select id="service" name="service" required>
+        <option value="haircut">Haarschnitt</option>
+        <option value="beard">Bart trimmen</option>
+        <option value="both">Haarschnitt + Bart</option>
+        <option value="kids">Kinderhaarschnitt</option>
+      </select>
+    </div>
+    <div>
+      <label for="datetime">Wunschtermin</label>
+      <input type="datetime-local" id="datetime" name="datetime" required>
+    </div>
+    <button type="submit">Termin anfragen</button>
+  </form>
+</section>
+{% endblock %}
